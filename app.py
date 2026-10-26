@@ -37,48 +37,122 @@ st.set_page_config(page_title="AIML Model Studio", page_icon="🧠", layout="wid
 # ----------------------------------------------------------------------------
 # Styling
 # ----------------------------------------------------------------------------
-st.markdown("""
-<style>
+LIGHT = dict(
+    dark=False, bg="linear-gradient(135deg,#f5f8ff 0%,#f8fbff 45%,#eef8f7 100%)",
+    ink="#16233a", head="#172554", muted="#65748b", card="#ffffff", line="#e3eaf6",
+    tab="#eaf0ff", note="#eef5ff", noteink="#334766", foot="#8491a7", accent="#3157d5",
+    sidebar="#0f1b3d", shadow="rgba(25,50,90,.05)", code="#f3f6fc",
+)
+DARK = dict(
+    dark=True, bg="linear-gradient(135deg,#0a1020 0%,#0d1527 45%,#0a1a1d 100%)",
+    ink="#e4ebfa", head="#c7d7ff", muted="#98a6bf", card="#131c2f", line="#24314b",
+    tab="#1a2540", note="#13213d", noteink="#c3d0ea", foot="#6d7b95", accent="#5b7cff",
+    sidebar="#080e1f", shadow="rgba(0,0,0,.35)", code="#0e1626",
+)
+
+STATIC_CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap');
-:root { --ink:#16233a; --muted:#65748b; --blue:#3157d5; --teal:#0e9f91; --line:#e3eaf6; }
 html, body, [class*="css"] { font-family:'Inter',sans-serif; }
-.stApp { background:linear-gradient(135deg,#f5f8ff 0%,#f8fbff 45%,#eef8f7 100%); color:var(--ink); }
+.stApp { background:var(--bg); color:var(--ink); }
+header[data-testid="stHeader"] { background:transparent; }
+[data-testid="stToolbar"] * { color:var(--ink) !important; }
 .block-container { padding-top:1.2rem; padding-bottom:3rem; max-width:1400px; }
 #MainMenu, footer { visibility:hidden; }
-section[data-testid="stSidebar"] { background:#0f1b3d; }
+
+/* text colours that follow the chosen theme (not Streamlit's native one) */
+.stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6 { color:var(--head); font-family:'Manrope',sans-serif; }
+.stApp [data-testid="stMarkdownContainer"] p, .stApp [data-testid="stMarkdownContainer"] li,
+.stApp [data-testid="stWidgetLabel"] p, .stApp label, .stApp [data-testid="stRadio"] p { color:var(--ink); }
+.stApp [data-testid="stCaptionContainer"], .stApp [data-testid="stCaptionContainer"] p { color:var(--muted); }
+
+/* sidebar (always dark navy) */
+section[data-testid="stSidebar"] { background:var(--sidebar); }
 section[data-testid="stSidebar"] * { color:#e6ecff !important; }
-section[data-testid="stSidebar"] .stSelectbox div[data-baseweb="select"] * { color:#16233a !important; }
+section[data-testid="stSidebar"] div[data-baseweb="select"] > div { background:#fff !important; }
+section[data-testid="stSidebar"] div[data-baseweb="select"] * { color:#16233a !important; }
 section[data-testid="stSidebar"] hr { border-color:rgba(255,255,255,.15); }
+section[data-testid="stSidebar"] [data-testid="stFileUploaderDropzone"] { background:rgba(255,255,255,.08); border:1px dashed rgba(255,255,255,.3); }
+section[data-testid="stSidebar"] button { background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.3); }
 .brand { font-family:'Manrope',sans-serif; font-weight:800; font-size:1.3rem; margin-bottom:.1rem; }
 .brand-sub { font-size:.75rem; opacity:.7; margin-bottom:.8rem; }
+
+/* hero */
 .hero { background:linear-gradient(120deg,#172554 0%,#2549a8 58%,#0f766e 100%); padding:1.8rem 2.2rem;
   border-radius:22px; color:#fff; box-shadow:0 16px 42px rgba(28,55,120,.18); margin-bottom:1.2rem; }
 .hero-kicker { text-transform:uppercase; letter-spacing:.16em; font-size:.7rem; font-weight:700; opacity:.78; }
-.hero h1 { font-family:'Manrope',sans-serif; font-size:2.1rem; margin:.4rem 0 .4rem 0; color:#fff; padding:0; }
-.hero p { color:#e2eaff; margin:0; max-width:780px; }
+.stApp [data-testid="stMarkdownContainer"] .hero h1 { font-size:2.1rem; margin:.4rem 0 .4rem 0; color:#fff; padding:0; }
+.stApp [data-testid="stMarkdownContainer"] .hero p { color:#e2eaff; margin:0; max-width:780px; }
 .chips { display:flex; gap:.6rem; flex-wrap:wrap; margin-top:1rem; }
 .chip { background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.25); border-radius:999px;
   padding:.3rem .85rem; font-size:.8rem; }
-.section-title { font-family:'Manrope',sans-serif; font-weight:800; color:#172554; font-size:1.3rem; margin:.4rem 0 .15rem 0; }
+
+/* headings, cards, metrics */
+.section-title { font-family:'Manrope',sans-serif; font-weight:800; color:var(--head); font-size:1.3rem; margin:.4rem 0 .15rem 0; }
 .section-sub { color:var(--muted); margin-bottom:.8rem; }
-div[data-testid="stMetric"] { background:#fff; border:1px solid var(--line); padding:.9rem 1.1rem; border-radius:16px;
-  box-shadow:0 5px 18px rgba(25,50,90,.05); }
-div[data-testid="stMetricLabel"] { color:#687894; }
-div[data-testid="stMetricValue"] { color:#172554; font-family:'Manrope',sans-serif; }
-.card { background:#fff; border:1px solid var(--line); border-radius:16px; padding:1.1rem 1.3rem;
-  box-shadow:0 5px 18px rgba(25,50,90,.05); height:100%; }
-.card h4 { margin:0 0 .4rem 0; color:#172554; font-family:'Manrope',sans-serif; }
+div[data-testid="stMetric"] { background:var(--card); border:1px solid var(--line); padding:.9rem 1.1rem; border-radius:16px;
+  box-shadow:0 5px 18px var(--shadow); }
+div[data-testid="stMetricLabel"], div[data-testid="stMetricLabel"] * { color:var(--muted) !important; }
+div[data-testid="stMetricValue"], div[data-testid="stMetricValue"] * { color:var(--head) !important; font-family:'Manrope',sans-serif; }
+.card { background:var(--card); color:var(--ink); border:1px solid var(--line); border-radius:16px; padding:1.1rem 1.3rem;
+  box-shadow:0 5px 18px var(--shadow); height:100%; }
+.stApp [data-testid="stMarkdownContainer"] .card h4 { margin:0 0 .4rem 0; color:var(--head); }
 .pill { display:inline-block; padding:.25rem .8rem; border-radius:999px; font-weight:700; font-size:.85rem; }
 .pill-ok { background:#dcfce7; color:#166534; } .pill-bad { background:#fee2e2; color:#991b1b; }
+
+/* tabs */
 .stTabs [data-baseweb="tab-list"] { gap:8px; }
-.stTabs [data-baseweb="tab"] { background:#eaf0ff; border-radius:10px 10px 0 0; padding:.55rem 1rem; }
-.stTabs [aria-selected="true"] { background:#3157d5 !important; color:#fff !important; }
+.stTabs [data-baseweb="tab"] { background:var(--tab); border-radius:10px 10px 0 0; padding:.55rem 1rem; }
+.stApp .stTabs [data-baseweb="tab"] p { color:var(--ink); }
+.stTabs [aria-selected="true"] { background:var(--accent) !important; }
+.stApp .stTabs [aria-selected="true"] p { color:#fff !important; }
+
+/* inputs, popovers, alerts, expanders, code */
+.block-container div[data-baseweb="select"] > div, .block-container div[data-baseweb="input"],
+.block-container div[data-baseweb="base-input"], .block-container input { background:var(--card); color:var(--ink); border-color:var(--line); }
+.block-container div[data-baseweb="select"] * { color:var(--ink); }
+div[data-baseweb="popover"] ul, div[data-baseweb="popover"] li { background:var(--card) !important; color:var(--ink) !important; }
+.block-container div[data-testid="stAlert"] { background:var(--card); border:1px solid var(--line); }
+.block-container div[data-testid="stAlert"] * { color:var(--ink) !important; }
+.block-container [data-testid="stExpander"] { background:var(--card); border:1px solid var(--line); border-radius:12px; }
+.block-container [data-testid="stExpander"] summary, .block-container [data-testid="stExpander"] summary * { color:var(--ink) !important; }
+.block-container pre, .block-container pre * { background:var(--code) !important; color:var(--ink) !important; }
+.block-container [data-testid="stTickBarMin"], .block-container [data-testid="stTickBarMax"] { color:var(--muted); }
 div[data-testid="stDataFrame"] { border:1px solid var(--line); border-radius:12px; overflow:hidden; }
-div.stButton > button, div.stDownloadButton > button { border-radius:10px; font-weight:600; }
-.note { background:#eef5ff; border-left:4px solid #3157d5; border-radius:10px; padding:.8rem 1rem; color:#334766; margin-top:1.2rem; }
-.footer { color:#8491a7; text-align:center; font-size:.8rem; padding-top:2rem; }
-</style>
-""", unsafe_allow_html=True)
+.block-container .stButton button, .block-container .stDownloadButton button { background:var(--card); border:1px solid var(--line); border-radius:10px; font-weight:600; }
+.block-container .stButton button p, .block-container .stDownloadButton button p { color:var(--ink); }
+
+div[role="dialog"] { background:var(--card) !important; border:1px solid var(--line); border-radius:20px !important; }
+div[role="dialog"] h2, div[role="dialog"] h2 * { color:var(--head) !important; font-family:'Manrope',sans-serif; }
+div[role="dialog"] button[aria-label="Close"] { color:var(--ink); }
+button[kind="primary"], button[data-testid="stBaseButton-primary"] { background:var(--accent) !important; border:1px solid var(--accent) !important; border-radius:10px; font-weight:700; }
+button[kind="primary"] p, button[data-testid="stBaseButton-primary"] p { color:#fff !important; }
+.note { background:var(--note); border-left:4px solid var(--accent); border-radius:10px; padding:.8rem 1rem; color:var(--noteink); margin-top:1.2rem; }
+.note b { color:var(--head); }
+.footer { color:var(--foot); text-align:center; font-size:.8rem; padding-top:2rem; }
+"""
+
+
+def apply_theme(dark: bool):
+    """Inject CSS for the chosen theme, style matplotlib to match, and return the palette."""
+    T = DARK if dark else LIGHT
+    root = ":root{" + ";".join(f"--{k}:{v}" for k, v in T.items() if k != "dark") + "}"
+    # st.dataframe is canvas-based and follows Streamlit's own theme; invert it when that differs from ours.
+    try:
+        native_dark = (st.context.theme.type or "light") == "dark"
+    except Exception:
+        native_dark = False
+    extra = ""
+    if native_dark != dark:
+        extra = 'div[data-testid="stDataFrame"] { filter:invert(.92) hue-rotate(180deg); }'
+    st.markdown(f"<style>{STATIC_CSS}{root}{extra}</style>", unsafe_allow_html=True)
+    plt.rcParams.update({
+        "figure.facecolor": "none", "axes.facecolor": "none", "savefig.facecolor": "none",
+        "savefig.transparent": True, "text.color": T["ink"], "axes.labelcolor": T["ink"],
+        "axes.edgecolor": T["line"], "axes.titlecolor": T["ink"], "xtick.color": T["muted"],
+        "ytick.color": T["muted"], "grid.color": T["line"], "legend.facecolor": T["card"],
+        "legend.edgecolor": T["line"], "legend.labelcolor": T["ink"],
+    })
+    return T
 
 
 # ----------------------------------------------------------------------------
@@ -160,6 +234,18 @@ def plot_confusion(cm, title):
     return fig
 
 
+def plot_grouped_bars(comp, cols):
+    fig, ax = plt.subplots(figsize=(9, 3.9))
+    n = len(cols); w = 0.8 / n; x = np.arange(len(comp))
+    for i, c in enumerate(cols):
+        ax.bar(x - 0.4 + w * (i + 0.5), comp[c].fillna(0), w, label=c, color=PALETTE[i % len(PALETTE)])
+    ax.set_xticks(x, comp.index, rotation=15, ha="right")
+    ax.set_ylim(max(0.0, float(np.nanmin(comp[cols].values)) - 0.1), 1.02)
+    ax.legend(ncol=n, loc="lower center", bbox_to_anchor=(0.5, 1.0), frameon=False)
+    style_ax(ax); fig.tight_layout()
+    return fig
+
+
 # ----------------------------------------------------------------------------
 # Load models
 # ----------------------------------------------------------------------------
@@ -174,7 +260,10 @@ if not models:
 with st.sidebar:
     st.markdown('<div class="brand">🧠 Model Studio</div><div class="brand-sub">ML Assignment 2 · BITS Pilani</div>',
                 unsafe_allow_html=True)
-    page = st.radio("Navigate", PAGES, label_visibility="collapsed")
+    _toggle = getattr(st, "toggle", st.checkbox)
+    dark = _toggle("🌙 Dark mode", key="dark_mode", help="Switch between light and dark appearance.")
+    T = apply_theme(dark)
+    page = st.radio("Navigate", PAGES, key="nav_page", label_visibility="collapsed")
     st.divider()
     selected_model = st.selectbox("Active classifier", list(models.keys()))
     threshold = st.slider("Decision threshold", 0.05, 0.95, 0.50, 0.05,
@@ -188,6 +277,75 @@ with st.sidebar:
         st.download_button("⬇ Sample test CSV", SAMPLE_PATH.read_bytes(), "test_data.csv", "text/csv",
                            use_container_width=True)
     st.caption("Saved models · no retraining · 0 = malignant, 1 = benign")
+    help_clicked = st.button("❓ How to use", use_container_width=True)
+
+# ----------------------------------------------------------------------------
+# Welcome guide (pop-up on first load, reopen with "How to use" in the sidebar)
+# ----------------------------------------------------------------------------
+WELCOME_HTML = """<style>
+@keyframes wl-pop { 0%{transform:scale(.5);opacity:0} 70%{transform:scale(1.1);opacity:1} 100%{transform:scale(1);opacity:1} }
+@keyframes wl-rise { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:none} }
+@keyframes wl-float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+@keyframes wl-pulse { 0%{box-shadow:0 0 0 0 rgba(49,87,213,.5)} 70%{box-shadow:0 0 0 10px rgba(49,87,213,0)} 100%{box-shadow:0 0 0 0 rgba(49,87,213,0)} }
+@keyframes wl-shine { to{background-position:200% center} }
+.wl-top { text-align:center; margin-bottom:.4rem; }
+.wl-logo { font-size:3.2rem; display:inline-block; animation:wl-pop .7s ease both, wl-float 3s ease-in-out .8s infinite; }
+.wl-title { font-family:'Manrope',sans-serif; font-weight:800; font-size:1.5rem; margin-top:.2rem;
+  background:linear-gradient(90deg,#3157d5,#0e9f91,#3157d5); background-size:200% auto;
+  -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:transparent;
+  animation:wl-shine 4s linear infinite; }
+.wl-sub { color:var(--muted); font-size:.95rem; margin-top:.2rem; animation:wl-rise .6s ease .2s both; }
+.wl-step { display:flex; gap:.9rem; align-items:flex-start; padding:.75rem .95rem; margin:.55rem 0;
+  border:1px solid var(--line); border-radius:14px; background:var(--card); opacity:0; animation:wl-rise .55s ease forwards; }
+.wl-d1 { animation-delay:.35s; } .wl-d2 { animation-delay:.6s; } .wl-d3 { animation-delay:.85s; } .wl-d4 { animation-delay:1.1s; }
+.wl-num { flex:0 0 2rem; height:2rem; border-radius:50%; background:var(--accent); color:#fff; font-weight:700;
+  display:flex; align-items:center; justify-content:center; animation:wl-pulse 2s infinite; }
+.wl-h { font-weight:700; color:var(--head); }
+.wl-p { color:var(--ink); font-size:.9rem; margin-top:.1rem; }
+.wl-tip { text-align:center; color:var(--muted); font-size:.85rem; margin:.7rem 0 .4rem 0; animation:wl-rise .6s ease 1.35s both; }
+@media (prefers-reduced-motion: reduce) { .wl-logo,.wl-title,.wl-num { animation:none; } .wl-step,.wl-sub,.wl-tip { animation:none; opacity:1; } }
+</style>
+<div class="wl-top">
+<div class="wl-logo">🧠</div>
+<div class="wl-title">Breast Cancer Classification Studio</div>
+<div class="wl-sub">Compare five machine-learning models in four easy steps.</div>
+</div>
+<div class="wl-step wl-d1"><div class="wl-num">1</div><div><div class="wl-h">🧠 Pick a classifier</div><div class="wl-p">Use <b>Active classifier</b> in the left sidebar to choose one of the five saved models.</div></div></div>
+<div class="wl-step wl-d2"><div class="wl-num">2</div><div><div class="wl-h">📁 Choose your data</div><div class="wl-p">The built-in test set loads automatically. Or upload your own CSV with the 30 features and a <b>target</b> column.</div></div></div>
+<div class="wl-step wl-d3"><div class="wl-num">3</div><div><div class="wl-h">🧭 Explore the pages</div><div class="wl-p"><b>Overview</b> for the quick picture, <b>Model Comparison</b> to rank models, <b>Diagnostics</b> to see mistakes, <b>Predict</b> to try your own values.</div></div></div>
+<div class="wl-step wl-d4"><div class="wl-num">4</div><div><div class="wl-h">🎚️ Fine-tune and personalise</div><div class="wl-p">Slide the <b>decision threshold</b> or switch <b>Dark mode</b> any time from the sidebar.</div></div></div>
+<div class="wl-tip">💡 Reopen this guide any time with <b>❓ How to use</b> in the sidebar.</div>
+"""
+
+
+def _go_home():
+    st.session_state["nav_page"] = PAGES[0]
+    st.session_state["welcomed"] = True
+
+
+def _welcome_body():
+    st.markdown(WELCOME_HTML, unsafe_allow_html=True)
+    return st.button("✅ Got it — take me to the app", type="primary", use_container_width=True, on_click=_go_home)
+
+
+_dialog = getattr(st, "dialog", None)
+if _dialog is not None:
+    @_dialog("👋 Welcome to Model Studio", width="large")
+    def welcome_dialog():
+        if _welcome_body():
+            st.rerun()
+
+    if help_clicked or not st.session_state.get("welcomed"):
+        st.session_state["welcomed"] = True  # a dismissed pop-up won't keep reopening
+        welcome_dialog()
+else:  # older Streamlit without st.dialog: show the guide as a first screen instead
+    if help_clicked:
+        st.session_state["welcomed"] = False
+    if not st.session_state.get("welcomed"):
+        with st.container(border=True):
+            _welcome_body()
+        st.stop()
+
 
 # ----------------------------------------------------------------------------
 # Data loading & validation
@@ -326,7 +484,9 @@ elif page == "📊 Model Comparison":
                            "evaluation_metrics.csv", "text/csv")
     with t2:
         if focus:
-            st.bar_chart(comp[focus], use_container_width=True)
+            fig = plot_grouped_bars(comp, focus)
+            st.pyplot(fig, use_container_width=True)
+            plt.close(fig)
         else:
             st.info("Select at least one metric.")
     with t3:
@@ -377,7 +537,7 @@ elif page == "🔍 Diagnostics":
             for lbl, name, c in [(0, "malignant", PALETTE[3]), (1, "benign", PALETTE[1])]:
                 ax.hist(r["scores"][y.values == lbl], bins=25, alpha=.6, color=c, label=f"Actual {name}")
             if r["kind"] == "proba":
-                ax.axvline(threshold, color="#16233a", ls="--", label=f"Threshold {threshold:.2f}")
+                ax.axvline(threshold, color=T["ink"], ls="--", label=f"Threshold {threshold:.2f}")
             ax.set_xlabel("Model score (benign)"); ax.set_ylabel("Count")
             ax.legend(); style_ax(ax); fig.tight_layout()
             st.pyplot(fig, use_container_width=False)
@@ -544,8 +704,5 @@ else:
     if missing_models:
         st.warning("Model files not found for: " + ", ".join(missing_models))
 
-st.markdown('<div class="note"><b>Interpretation note:</b> This is an educational classification benchmark, '
-            'not a clinical diagnostic tool. Metrics are computed on the labeled test CSV supplied in the current session.</div>',
-            unsafe_allow_html=True)
 st.markdown('<div class="footer">Designed and developed by Yaythish Kannaa G S · BITS ID 2026AJ05374 · Machine Learning Assignment 2</div>',
             unsafe_allow_html=True)
