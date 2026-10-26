@@ -33,8 +33,6 @@
 6. [Application features](#-application-features)
 7. [Repository structure](#-repository-structure)
 8. [Run locally](#-run-locally)
-9. [Deploy on Streamlit Community Cloud](#-deploy-on-streamlit-community-cloud)
-10. [Submission checklist](#-submission-checklist)
 
 ---
 
